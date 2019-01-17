@@ -103,11 +103,11 @@ def sav_check(project):
     planned = results[2]
     ran = results[3]
 
-    print("#{} tests planned".format(planned))
-    print("#{} tests ran".format(ran))
+    print("{} tests planned".format(planned))
+    print("{} tests ran".format(ran))
 
     if ran > planned:
-        print("ERROR: more tests run then planned!")
+        print("more tests run then planned!")
 
     successes = 0
     failures = []
@@ -127,15 +127,15 @@ def sav_check(project):
             unexpected.append((idx, byte))
         ran = max(0, ran-1)
 
-    print("#{} successes".format(successes))
-    if planned:
-        print("#{} tests planned, but not executed!".format(planned))
+    print("{} successes".format(successes))
+    if planned > 0:
+        print("{} tests planned, but not executed!".format(planned))
     if failures:
-        print("#{} failures".format(len(failures)))
+        print("{} failures".format(len(failures)))
         print("caused by tests: {}".format(', '.join(map(str,failures))))
     if unexpected:
         # TODO: Print unexpected values instead of hexdump
-        print("#{} unexpected values\n".format(len(unexpected)))
+        print("{} unexpected values\n".format(len(unexpected)))
         run('hexdump', project.sav)
 
 def gambatte(project):
