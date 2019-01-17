@@ -31,6 +31,7 @@ def rm(path):
     if path.exists():
         run('rm', '-r', path)
 
+
 def run(*args, **kwargs):
     if ARGS.verbose:
         print(' '.join([str(arg) for arg in args]))
@@ -138,6 +139,7 @@ def sav_check(project):
         print("{} unexpected values\n".format(len(unexpected)))
         run('hexdump', project.sav)
 
+
 def gambatte(project):
     run(GAMBATTE, project.gb, capture_output=True)
 
@@ -212,6 +214,7 @@ class Project:
     @property
     def sav(self):
         return self.out_file('.sav')
+
 
 if __name__ == '__main__':
     try:
