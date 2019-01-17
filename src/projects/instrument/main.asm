@@ -9,7 +9,6 @@ assert: MACRO
 .next\@:
   ENDM
 
-; $0150: Code!
 main:
   ld sp, Work_RAM_End
 
