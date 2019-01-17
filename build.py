@@ -16,7 +16,7 @@ PROJECTS = SRC / 'projects'
 
 GAMBATTE = HOME / 'workspace/gambatte/gambatte_sdl/gambatte_sdl'
 EMSFLASHER = HOME / 'workspace/ems-flasher/ems-flasher'
-SAMEBOY_TESTER = HOME / 'workspace/SameBoy/build/bin/tester/sameboy_tester'
+SAMEBOY_TESTER = HERE / 'SameBoy/build/bin/tester/sameboy_tester'
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-v', '--verbose', action='store_true')

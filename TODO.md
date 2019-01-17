@@ -1,7 +1,3 @@
-# Project
-
-* I'm using a modified version of `sameboy_tester`, I should include that in this repo, and put my modification on github
-
 # Build
 
 * Structure for generating multiple ROMs
