@@ -23,7 +23,7 @@ PARSER.add_argument('-v', '--verbose', action='store_true')
 PARSER.add_argument('-r', '--run', action='store_true', help='run with gambatte')
 PARSER.add_argument('-f', '--flash', action='store_true', help='flash with emsflasher')
 PARSER.add_argument('-t', '--test', action='store_true', help='test with sameboy_tester')
-PARSER.add_argument('project', nargs='?')
+PARSER.add_argument('project')
 ARGS = PARSER.parse_args()
 
 
@@ -41,52 +41,110 @@ def build_gfx(name):
         run('rgbgfx', '-o', OUT / out_file, image)
 
 
-def build_project(name):
-    out_dir = OUT / name
-
-    run('mkdir', '-p', out_dir)
-
-    project_dir = PROJECTS / name
-    main_file =  project_dir / 'main.asm'
-    obj_file = out_dir / (name + '.obj')
-    map_file = out_dir / (name + '.map')
-    sym_file = out_dir / (name + '.sym')
-    gb_file = out_dir / (name + '.gb')
+def build_project(project):
+    run('mkdir', '-p', project.out_dir)
 
     run('rgbasm',
-        '-o', obj_file,
+        '-o', project.obj,
         '-i', str(COMMON) + '/',
-        '-i', str(project_dir) + '/',
-        main_file)
-        
-    run('rgblink', '-m', map_file, '-n', sym_file, '-o', gb_file, obj_file)
-    run('rgbfix', '-v', '-p0', gb_file)
+        '-i', str(project.src_dir) + '/',
+        project.main)
+
+    run('rgblink',
+        '-m', project.map,
+        '-n', project.sym,
+        '-o', project.gb,
+        project.obj)
+
+    run('rgbfix', '-v', '-p0', project.gb)
+
+
+def sameboy_test(project):
+    run(SAMEBOY_TESTER, project.gb, capture_output=True)
+    if not project.log.exists():
+        print('sameboy_tester did not generate an {}'.format(project.log))
+
+    if project.log.exists():
+        contents = project.log.read_text()
+        if 'The game is deadlocked' in contents:
+            print("gameboy deadlocked")
+
+        if 'Game probably stuck with blank screen' in contents:
+            print("gameboy blank screen")
+
+    if project.bmp.exists():
+        run('open', project.bmp)
+
+
+def gambatte(project):
+    run(GAMBATTE, project.gb, capture_output=True)
+
+
+def emsflash(project):
+    run(EMSFLASHER, '--page', '1', '--format')
+    run(EMSFLASHER, '--page', '1', '--write', project.gb)
 
 
 def main():
-    run('rm', '-r', OUT)
-
     for gfx in GFX.iterdir():
         build_gfx(gfx.name)
 
-    if ARGS.project:
-        build_project(ARGS.project)
-    else:
-        for project in PROJECTS.iterdir():
-            build_project(project.name)
+    project = Project(ARGS.project)
+    run('rm', '-r', project.out_dir)
+    build_project(project)
 
-    if ARGS.project:
-        gb = OUT / ARGS.project / (ARGS.project + '.gb')
+    if ARGS.test:
+        sameboy_test(project)
 
-        if ARGS.test:
-            run(SAMEBOY_TESTER, gb, capture_output=True)
+    if ARGS.run:
+        gambatte(project)
 
-        if ARGS.run:
-            run(GAMBATTE, gb, capture_output=True)
+    if ARGS.flash:
+        emsflash(project)
 
-        if ARGS.flash:
-            run(EMSFLASHER, '--page', '1', '--format')
-            run(EMSFLASHER, '--page', '1', '--write', gb)
+
+class Project:
+    def __init__(self, name):
+        self.name = name
+
+    @property
+    def src_dir(self):
+        return PROJECTS / self.name
+
+    @property
+    def main(self):
+        return self.src_dir / 'main.asm'
+
+    @property
+    def out_dir(self):
+        return OUT / self.name
+
+    def out_file(self, suffix):
+        return (self.out_dir / self.name).with_suffix(suffix)
+
+    @property
+    def gb(self):
+        return self.out_file('.gb')
+
+    @property
+    def log(self):
+        return self.out_file('.log')
+
+    @property
+    def obj(self):
+        return self.out_file('.obj')
+
+    @property
+    def map(self):
+        return self.out_file('.map')
+
+    @property
+    def sym(self):
+        return self.out_file('.sym')
+
+    @property
+    def bmp(self):
+        return self.out_file('.bmp')
 
 
 if __name__ == '__main__':

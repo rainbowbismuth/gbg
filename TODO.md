@@ -2,6 +2,8 @@
 
 * Structure for generating multiple ROMs
 * Include testing framework
+* Re-arrange files like `projects/instrument/src` & `common/src`?
+* Should allow for having a `test` dir per project? idk
 
 # Code
 
