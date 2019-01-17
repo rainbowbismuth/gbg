@@ -31,9 +31,11 @@ serial:
 joypad:
   reti
 
-; TODO: Rewrite these using stack/push/pop
+; TODO: Rewrite these using "DS"
 ;  just to maximize ease of use.
 ;  testing code won't need the performance.
+;  wonder if it might even be possible to save flags?
+
 write_test_header:
   call enable_cart_ram
   ld a, $FA
@@ -91,11 +93,20 @@ test_plan: MACRO
   call plan_tests
   ENDM
 
-test_assert: MACRO
+test_assert_true: MACRO
   jr \1, .success\@
   call test_report_failure
   jr .next\@
 .success\@:
   call test_report_success
+.next\@:
+  ENDM
+
+test_assert_false: MACRO
+  jr \1, .failure\@
+  call test_report_success
+  jr .next\@
+.failure\@:
+  call test_report_failure
 .next\@:
   ENDM
