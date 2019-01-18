@@ -3,6 +3,7 @@ INCLUDE "test_framework.asm"
 test_main:
   call test_or_behaviour
   call test_cp_behaviour
+  call test_dec16_behaviour
   ret
 
 test_or_behaviour:
@@ -31,4 +32,12 @@ test_cp_behaviour:
   ld a, 1
   cp 2
   test_assert_true c
+  ret
+
+test_dec16_behaviour:
+  test_plan 1
+
+  ld bc, 1
+  dec bc
+  test_assert_false z
   ret
