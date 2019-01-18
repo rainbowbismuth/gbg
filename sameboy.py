@@ -1,5 +1,6 @@
 import ctypes
 from pathlib import Path
+from PIL import Image
 
 # built with a `clang -shared -o shared.so *.o` in Core
 _sameboy = ctypes.cdll.LoadLibrary('SameBoy/build/obj/Core/shared.so')
@@ -23,15 +24,6 @@ GB_log_callback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p,
 GB_rgb_encode_callback = ctypes.CFUNCTYPE(ctypes.c_uint32, ctypes.c_void_p,
                                           ctypes.c_uint8, ctypes.c_uint8,
                                           ctypes.c_uint8)
-
-BMP_HEADER = bytes([
-    0x42, 0x4D, 0x48, 0x68, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46, 0x00,
-    0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x70, 0xFF,
-    0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00, 0x03, 0x00, 0x00, 0x00, 0x02, 0x68,
-    0x01, 0x00, 0x12, 0x0B, 0x00, 0x00, 0x12, 0x0B, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00,
-    0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-])
 
 
 # TODO: Add context manager?
@@ -78,7 +70,6 @@ class GB:
     def load_rom(self, path):
         self._assert_memory()
         path = str(Path(path).resolve()).encode('utf-8')
-        print(path)
         res = _sameboy.GB_load_rom(self.memory, path)
         if res:
             raise Exception("Error loading ROM {}".format(path))
@@ -146,10 +137,9 @@ class GB:
             lambda _, s, a: callback(self, s, a))
         _sameboy.GB_set_log_callback(self.memory, self.log_callback)
 
-    def save_screenshot(self, path):
-        with open(path, 'wb') as f:
-            f.write(BMP_HEADER)
-            f.write(self.screen.raw)
+    def save_screenshot(self, path, format=None):
+        img = Image.frombytes('RGBA', (160, 144), self.screen)
+        img.save(path, format, optimize=True)
 
     def dump_memory(self, path):
         mem = bytearray(0xFFFF + 1)
@@ -172,7 +162,7 @@ if __name__ == '__main__':
     # default callbacks
     gb.set_vblank_callback(lambda gb: 0)
     gb.set_rgb_encode_callback(
-        lambda gb, r, g, b: (r << 24) | (g << 16) | (b << 8))
+        lambda gb, r, g, b: 0xFF000000 | (r << 16) | (g << 8) | b)
     gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'), end=''))
     gb.set_input_callback(lambda gb: None)
     # gb.set_async_input_callback(lambda gb: None)
@@ -194,7 +184,7 @@ if __name__ == '__main__':
     gb.set_rendering_disabled(False)
     gb.run_frame()
 
-    gb.save_screenshot('test.bmp')
+    gb.save_screenshot('test.png')
     # gb.save_battery('./testing.sav')
 
     gb.free()
