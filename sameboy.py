@@ -94,6 +94,14 @@ class GB:
         self._assert_memory()
         return _sameboy.GB_run_frame(self.memory)
 
+    def debugger_set_disabled(self, disabled=True):
+        self._assert_memory()
+        _sameboy.GB_debugger_set_disabled(self.memory, disabled)
+
+    def debugger_break(self):
+        self._assert_memory()
+        _sameboy.GB_debugger_break(self.memory)
+
     def reset(self):
         self._assert_memory()
         return _sameboy.GB_reset(self.memory)
@@ -143,6 +151,13 @@ class GB:
             f.write(BMP_HEADER)
             f.write(self.screen.raw)
 
+    def dump_memory(self, path):
+        mem = bytearray(0xFFFF + 1)
+        for addr in range(0xFFFF + 1):
+            mem[addr] = self.read_memory(addr)
+        with open(path, 'wb') as f:
+            f.write(mem)
+
 
 if __name__ == '__main__':
     remaining = 10
@@ -162,35 +177,49 @@ if __name__ == '__main__':
         print(decoded)
 
 
-    # gb = GB(GB_MODEL_DMG_B)
-    gb = GB(GB_MODEL_CGB_C)
+    gb = GB(GB_MODEL_DMG_B)
+    # gb = GB(GB_MODEL_CGB_C)
 
     # gb.load_boot_rom('SameBoy/build/bin/tester/dmg_boot.bin')
 
-    gb.load_boot_rom('SameBoy/build/bin/tester/cgb_boot.bin')
+    # gb.load_boot_rom('SameBoy/build/bin/tester/cgb_boot.bin')
 
-    # boot_rom = Path('SameBoy/build/bin/tester/cgb_boot.bin').read_bytes()
-    # gb.load_boot_rom_from_bytes(boot_rom)
+    boot_rom = Path('SameBoy/build/bin/tester/dmg_boot.bin').read_bytes()
+    gb.load_boot_rom_from_bytes(boot_rom)
 
     # default callbacks
     gb.set_vblank_callback(lambda gb: 0)
     gb.set_rgb_encode_callback(lambda gb,r,g,b: (r<<24) | (g<<16) | (b<<8))
     gb.set_log_callback(limited_logger)
-    gb.set_input_callback(lambda gb: None)
-    gb.set_async_input_callback(lambda gb: None)
+    # gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'),end=''))
+    # gb.set_input_callback(lambda gb: None)
+    # gb.set_async_input_callback(lambda gb: None)
 
     gb.load_rom('./out/instrument/instrument.gb')
     # gb.load_rom('./out/testing/testing.gb')
     # gb.load_rom('extra_roms/pocket.gb')
 
-    # gb.set_rendering_disabled(True)
-    for _ in range(60*4):
-       gb.run_frame()
+    # gb.dump_memory('test_before.mem')
+
+    # gb.run()
+    # gb.debugger_set_disabled(False)
+    # gb.debugger_break()
+    gb.set_rendering_disabled(True)
+    for _ in range(60*40):
+        gb.run_frame()
+
+    gb.dump_memory('test_after.mem')
+
+    # NOTES:
+    #    soooooo, with the load_boot_rom_from_bytes call I actually, believe it
+    #    or not, successfully finish the boot rom because it actually loads?
+
+    #    but then it looks like my own ROM doesn't load? it's all 0xFF...
 
     # gb.set_rendering_disabled(False)
     # gb.run_frame()
 
-    gb.save_screenshot('test.bmp')
+    # gb.save_screenshot('test.bmp')
     # gb.save_battery('./testing.sav')
 
     gb.free()
