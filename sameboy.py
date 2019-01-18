@@ -7,7 +7,6 @@ _sameboy = ctypes.cdll.LoadLibrary('SameBoy/build/obj/Core/shared.so')
 GB_MODEL_DMG_B = 0x002
 GB_MODEL_CGB_C = 0x203
 
-
 # typedef void (*GB_infrared_callback_t)(GB_gameboy_t *gb, bool on, long cycles_since_last_update);
 # typedef void (*GB_rumble_callback_t)(GB_gameboy_t *gb, bool rumble_on);
 # typedef void (*GB_serial_transfer_start_callback_t)(GB_gameboy_t *gb, uint8_t byte_to_send);
@@ -23,8 +22,6 @@ GB_vblank_callback = ctypes.CFUNCTYPE(
 GB_log_callback = ctypes.CFUNCTYPE(
     None, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int)
 
-# TODO: Honestly should just write some C with default versions of these..
-#  I mean, a callback across ctypes just to encode rgb ????
 GB_rgb_encode_callback = ctypes.CFUNCTYPE(
     ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8)
 
@@ -39,6 +36,7 @@ BMP_HEADER = bytes([0x42, 0x4D, 0x48, 0x68, 0x01, 0x00, 0x00, 0x00,
 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
 
+# TODO: Add context manager?
 class GB:
     def __init__(self, model=GB_MODEL_CGB_C):
         self.memory = ctypes.create_string_buffer(0xF000)
@@ -70,7 +68,7 @@ class GB:
 
     def load_boot_rom(self, path):
         self._assert_memory()
-        path = str(Path(path).resolve())
+        path = str(Path(path).resolve()).encode('utf-8')
         res = _sameboy.GB_load_boot_rom(self.memory, path)
         if res:
             raise Exception("Error loading boot ROM at {}".format(path))
@@ -81,7 +79,8 @@ class GB:
 
     def load_rom(self, path):
         self._assert_memory()
-        path = str(Path(path).resolve())
+        path = str(Path(path).resolve()).encode('utf-8')
+        print(path)
         res = _sameboy.GB_load_rom(self.memory, path)
         if res:
             raise Exception("Error loading ROM {}".format(path))
@@ -108,7 +107,7 @@ class GB:
 
     def save_battery(self, path):
         self._assert_memory()
-        path = str(Path(path).resolve())
+        path = str(Path(path).resolve()).encode('utf-8')
         res = _sameboy.GB_save_battery(self.memory, path)
         if res:
             raise Exception("Error saving battery at {}".format(path))
@@ -160,66 +159,40 @@ class GB:
 
 
 if __name__ == '__main__':
-    remaining = 10
-    def limited_logger(gb, s, attr):
-        global remaining
-        if not remaining:
-            return
-        decoded = s.decode('utf-8')
-
-        # Obviously code is executing.. by why is it... wrong?
-        if 'HW Register' in decoded:
-            return
-        if 'RAM Mirror' in decoded:
-            return
-
-        remaining -= 1
-        print(decoded)
-
-
     gb = GB(GB_MODEL_DMG_B)
     # gb = GB(GB_MODEL_CGB_C)
 
-    # gb.load_boot_rom('SameBoy/build/bin/tester/dmg_boot.bin')
-
+    gb.load_boot_rom('SameBoy/build/bin/tester/dmg_boot.bin')
     # gb.load_boot_rom('SameBoy/build/bin/tester/cgb_boot.bin')
 
-    boot_rom = Path('SameBoy/build/bin/tester/dmg_boot.bin').read_bytes()
-    gb.load_boot_rom_from_bytes(boot_rom)
+    # boot_rom = Path('SameBoy/build/bin/tester/dmg_boot.bin').read_bytes()
+    # gb.load_boot_rom_from_bytes(boot_rom)
 
     # default callbacks
     gb.set_vblank_callback(lambda gb: 0)
     gb.set_rgb_encode_callback(lambda gb,r,g,b: (r<<24) | (g<<16) | (b<<8))
-    gb.set_log_callback(limited_logger)
-    # gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'),end=''))
-    # gb.set_input_callback(lambda gb: None)
+    gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'),end=''))
+    gb.set_input_callback(lambda gb: None)
     # gb.set_async_input_callback(lambda gb: None)
 
-    gb.load_rom('./out/instrument/instrument.gb')
+    gb.load_rom('out/instrument/instrument.gb')
     # gb.load_rom('./out/testing/testing.gb')
     # gb.load_rom('extra_roms/pocket.gb')
 
     # gb.dump_memory('test_before.mem')
 
-    # gb.run()
     # gb.debugger_set_disabled(False)
     # gb.debugger_break()
     gb.set_rendering_disabled(True)
     for _ in range(60*40):
         gb.run_frame()
 
-    gb.dump_memory('test_after.mem')
+    # gb.dump_memory('test_after.mem')
 
-    # NOTES:
-    #    soooooo, with the load_boot_rom_from_bytes call I actually, believe it
-    #    or not, successfully finish the boot rom because it actually loads?
+    gb.set_rendering_disabled(False)
+    gb.run_frame()
 
-    #    but then it looks like my own ROM doesn't load? it's all 0xFF...
-
-    # gb.set_rendering_disabled(False)
-    # gb.run_frame()
-
-    # gb.save_screenshot('test.bmp')
+    gb.save_screenshot('test.bmp')
     # gb.save_battery('./testing.sav')
 
     gb.free()
