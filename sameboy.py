@@ -59,6 +59,7 @@ class GB:
         _sameboy.GB_free(self.memory)
         self.memory = None
         self.input_callback = None
+        self.async_input_callback = None
         self.vblank_callback = None
         self.rgb_callback = None
         self.log_callback = None
@@ -70,10 +71,13 @@ class GB:
     def load_boot_rom(self, path):
         self._assert_memory()
         path = str(Path(path).resolve())
-        print(path)
         res = _sameboy.GB_load_boot_rom(self.memory, path)
         if res:
             raise Exception("Error loading boot ROM at {}".format(path))
+
+    def load_boot_rom_from_bytes(self, bytes):
+        self._assert_memory()
+        _sameboy.GB_load_boot_rom_from_buffer(self.memory, bytes, len(bytes))
 
     def load_rom(self, path):
         self._assert_memory()
@@ -114,6 +118,11 @@ class GB:
         self.input_callback = GB_input_callback(lambda _: callback(self))
         _sameboy.GB_set_input_callback(self.memory, self.input_callback)
 
+    def set_async_input_callback(self, callback):
+        self._assert_memory()
+        self.async_input_callback = GB_input_callback(lambda _: callback(self))
+        _sameboy.GB_set_async_input_callback(self.memory, self.async_input_callback)
+
     def set_vblank_callback(self, callback):
         self._assert_memory()
         self.vblank_callback = GB_vblank_callback(lambda _: callback(self))
@@ -141,32 +150,45 @@ if __name__ == '__main__':
         global remaining
         if not remaining:
             return
+        decoded = s.decode('utf-8')
+
+        # Obviously code is executing.. by why is it... wrong?
+        if 'HW Register' in decoded:
+            return
+        if 'RAM Mirror' in decoded:
+            return
+
         remaining -= 1
-        print(s.decode('utf-8'))
+        print(decoded)
 
 
     # gb = GB(GB_MODEL_DMG_B)
     gb = GB(GB_MODEL_CGB_C)
 
     # gb.load_boot_rom('SameBoy/build/bin/tester/dmg_boot.bin')
+
     gb.load_boot_rom('SameBoy/build/bin/tester/cgb_boot.bin')
+
+    # boot_rom = Path('SameBoy/build/bin/tester/cgb_boot.bin').read_bytes()
+    # gb.load_boot_rom_from_bytes(boot_rom)
 
     # default callbacks
     gb.set_vblank_callback(lambda gb: 0)
     gb.set_rgb_encode_callback(lambda gb,r,g,b: (r<<24) | (g<<16) | (b<<8))
     gb.set_log_callback(limited_logger)
     gb.set_input_callback(lambda gb: None)
+    gb.set_async_input_callback(lambda gb: None)
 
-    # gb.load_rom('./out/instrument/instrument.gb')
+    gb.load_rom('./out/instrument/instrument.gb')
     # gb.load_rom('./out/testing/testing.gb')
-    gb.load_rom('extra_roms/pocket.gb')
+    # gb.load_rom('extra_roms/pocket.gb')
 
     # gb.set_rendering_disabled(True)
-    for _ in range(60*40):
+    for _ in range(60*4):
        gb.run_frame()
 
     # gb.set_rendering_disabled(False)
-    gb.run_frame()
+    # gb.run_frame()
 
     gb.save_screenshot('test.bmp')
     # gb.save_battery('./testing.sav')
