@@ -20,11 +20,15 @@ SAMEBOY_TESTER = HERE / 'SameBoy/build/bin/tester/sameboy_tester'
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-v', '--verbose', action='store_true')
-PARSER.add_argument('-r', '--run', action='store_true', help='run with gambatte')
-PARSER.add_argument('-f', '--flash', action='store_true', help='flash with emsflasher')
-PARSER.add_argument('-t', '--test', action='store_true', help='test with sameboy_tester')
+PARSER.add_argument(
+    '-r', '--run', action='store_true', help='run with gambatte')
+PARSER.add_argument(
+    '-f', '--flash', action='store_true', help='flash with emsflasher')
+PARSER.add_argument(
+    '-t', '--test', action='store_true', help='test with sameboy_tester')
 PARSER.add_argument('project')
 ARGS = PARSER.parse_args()
+
 
 def rm(path):
     path = Path(path)
@@ -49,16 +53,11 @@ def build_gfx(name):
 def build_project(project):
     run('mkdir', '-p', project.out_dir)
 
-    run('rgbasm',
-        '-o', project.obj,
-        '-i', str(COMMON) + '/',
-        '-i', str(project.src_dir) + '/',
-        project.main)
+    run('rgbasm', '-o', project.obj, '-i',
+        str(COMMON) + '/', '-i',
+        str(project.src_dir) + '/', project.main)
 
-    run('rgblink',
-        '-m', project.map,
-        '-n', project.sym,
-        '-o', project.gb,
+    run('rgblink', '-m', project.map, '-n', project.sym, '-o', project.gb,
         project.obj)
 
     run('rgbfix', '-v', '-p0', project.gb)
@@ -117,7 +116,7 @@ def sav_check(project):
     for idx in range(4, len(results)):
         byte = results[idx]
         if ran and byte == 0:
-            failures.append(idx-3)
+            failures.append(idx - 3)
             planned -= 1
         if ran and byte == 1:
             successes += 1
@@ -126,14 +125,14 @@ def sav_check(project):
             unexpected.append((idx, byte))
         if not ran and byte != 0xFF:
             unexpected.append((idx, byte))
-        ran = max(0, ran-1)
+        ran = max(0, ran - 1)
 
     print("{} successes".format(successes))
     if planned > 0:
         print("{} tests planned, but not executed!".format(planned))
     if failures:
         print("{} failures".format(len(failures)))
-        print("caused by tests: {}".format(', '.join(map(str,failures))))
+        print("caused by tests: {}".format(', '.join(map(str, failures))))
     if unexpected:
         # TODO: Print unexpected values instead of hexdump
         print("{} unexpected values\n".format(len(unexpected)))

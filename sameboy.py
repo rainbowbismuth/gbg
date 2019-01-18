@@ -13,34 +13,32 @@ GB_MODEL_CGB_C = 0x203
 # typedef uint8_t (*GB_serial_transfer_end_callback_t)(GB_gameboy_t *gb);
 
 # Not sure if this is necessary for us..
-GB_input_callback = ctypes.CFUNCTYPE(
-    ctypes.c_char_p, ctypes.c_void_p)
+GB_input_callback = ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.c_void_p)
 
-GB_vblank_callback = ctypes.CFUNCTYPE(
-    None, ctypes.c_void_p)
+GB_vblank_callback = ctypes.CFUNCTYPE(None, ctypes.c_void_p)
 
-GB_log_callback = ctypes.CFUNCTYPE(
-    None, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int)
+GB_log_callback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_char_p,
+                                   ctypes.c_int)
 
-GB_rgb_encode_callback = ctypes.CFUNCTYPE(
-    ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint8, ctypes.c_uint8, ctypes.c_uint8)
+GB_rgb_encode_callback = ctypes.CFUNCTYPE(ctypes.c_uint32, ctypes.c_void_p,
+                                          ctypes.c_uint8, ctypes.c_uint8,
+                                          ctypes.c_uint8)
 
+BMP_HEADER = bytes([
+    0x42, 0x4D, 0x48, 0x68, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46, 0x00,
+    0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x70, 0xFF,
+    0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00, 0x03, 0x00, 0x00, 0x00, 0x02, 0x68,
+    0x01, 0x00, 0x12, 0x0B, 0x00, 0x00, 0x12, 0x0B, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00,
+    0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+])
 
-BMP_HEADER = bytes([0x42, 0x4D, 0x48, 0x68, 0x01, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x46, 0x00, 0x00, 0x00, 0x38, 0x00,
-0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x70, 0xFF,
-0xFF, 0xFF, 0x01, 0x00, 0x20, 0x00, 0x03, 0x00,
-0x00, 0x00, 0x02, 0x68, 0x01, 0x00, 0x12, 0x0B,
-0x00, 0x00, 0x12, 0x0B, 0x00, 0x00, 0x00, 0x00,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF,
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
 
 # TODO: Add context manager?
 class GB:
     def __init__(self, model=GB_MODEL_CGB_C):
         self.memory = ctypes.create_string_buffer(0xF000)
-        self.screen = ctypes.create_string_buffer(4*160*144)
+        self.screen = ctypes.create_string_buffer(4 * 160 * 144)
         _sameboy.GB_init(self.memory, model)
         _sameboy.GB_set_pixels_output(self.memory, self.screen)
 
@@ -50,7 +48,7 @@ class GB:
         self.free()
 
     def _assert_memory(self):
-        assert(self.memory is not None)
+        assert (self.memory is not None)
 
     def free(self):
         self._assert_memory()
@@ -128,7 +126,8 @@ class GB:
     def set_async_input_callback(self, callback):
         self._assert_memory()
         self.async_input_callback = GB_input_callback(lambda _: callback(self))
-        _sameboy.GB_set_async_input_callback(self.memory, self.async_input_callback)
+        _sameboy.GB_set_async_input_callback(self.memory,
+                                             self.async_input_callback)
 
     def set_vblank_callback(self, callback):
         self._assert_memory()
@@ -137,12 +136,14 @@ class GB:
 
     def set_rgb_encode_callback(self, callback):
         self._assert_memory()
-        self.rgb_callback = GB_rgb_encode_callback(lambda _, r, g, b: callback(self,r,g,b))
+        self.rgb_callback = GB_rgb_encode_callback(
+            lambda _, r, g, b: callback(self, r, g, b))
         _sameboy.GB_set_rgb_encode_callback(self.memory, self.rgb_callback)
 
     def set_log_callback(self, callback):
         self._assert_memory()
-        self.log_callback = GB_log_callback(lambda _, s, a: callback(self, s, a))
+        self.log_callback = GB_log_callback(
+            lambda _, s, a: callback(self, s, a))
         _sameboy.GB_set_log_callback(self.memory, self.log_callback)
 
     def save_screenshot(self, path):
@@ -170,8 +171,9 @@ if __name__ == '__main__':
 
     # default callbacks
     gb.set_vblank_callback(lambda gb: 0)
-    gb.set_rgb_encode_callback(lambda gb,r,g,b: (r<<24) | (g<<16) | (b<<8))
-    gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'),end=''))
+    gb.set_rgb_encode_callback(
+        lambda gb, r, g, b: (r << 24) | (g << 16) | (b << 8))
+    gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'), end=''))
     gb.set_input_callback(lambda gb: None)
     # gb.set_async_input_callback(lambda gb: None)
 
@@ -184,7 +186,7 @@ if __name__ == '__main__':
     # gb.debugger_set_disabled(False)
     # gb.debugger_break()
     gb.set_rendering_disabled(True)
-    for _ in range(60*40):
+    for _ in range(60 * 40):
         gb.run_frame()
 
     # gb.dump_memory('test_after.mem')
