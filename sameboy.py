@@ -26,13 +26,35 @@ GB_rgb_encode_callback = ctypes.CFUNCTYPE(ctypes.c_uint32, ctypes.c_void_p,
                                           ctypes.c_uint8)
 
 
+def default_rgb_encode_callback(gb, r, g, b):
+    return 0xFF000000 | (r << 16) | (g << 8) | b
+
+
+def default_vblank_callback(gb):
+    return None
+
+
+def default_log_callback(gb, msg, attr):
+    return None
+
+
+def default_input_callback(gb):
+    return None
+
+
 # TODO: Add context manager?
 class GB:
     def __init__(self, model=GB_MODEL_CGB_C):
         self.memory = ctypes.create_string_buffer(0xF000)
-        self.screen = ctypes.create_string_buffer(4 * 160 * 144)
         _sameboy.GB_init(self.memory, model)
+        width = self.get_screen_width()
+        height = self.get_screen_height()
+        self.screen = ctypes.create_string_buffer(4 * width * height)
         _sameboy.GB_set_pixels_output(self.memory, self.screen)
+        self.set_rgb_encode_callback(default_rgb_encode_callback)
+        self.set_vblank_callback(default_vblank_callback)
+        self.set_log_callback(default_log_callback)
+        self.set_input_callback(default_input_callback)
 
     def __del__(self):
         if not self.memory:
@@ -56,10 +78,20 @@ class GB:
         self._assert_memory()
         return _sameboy.GB_is_inited(self.memory)
 
+    def get_screen_width(self):
+        self._assert_memory()
+        return _sameboy.GB_get_screen_width(self.memory)
+
+    def get_screen_height(self):
+        self._assert_memory()
+        return _sameboy.GB_get_screen_height(self.memory)
+
+    def _encode_path(self, path):
+        return str(Path(path).resolve()).encode('utf-8')
+
     def load_boot_rom(self, path):
         self._assert_memory()
-        path = str(Path(path).resolve()).encode('utf-8')
-        res = _sameboy.GB_load_boot_rom(self.memory, path)
+        res = _sameboy.GB_load_boot_rom(self.memory, self._encode_path(path))
         if res:
             raise Exception("Error loading boot ROM at {}".format(path))
 
@@ -69,8 +101,7 @@ class GB:
 
     def load_rom(self, path):
         self._assert_memory()
-        path = str(Path(path).resolve()).encode('utf-8')
-        res = _sameboy.GB_load_rom(self.memory, path)
+        res = _sameboy.GB_load_rom(self.memory, self._encode_path(path))
         if res:
             raise Exception("Error loading ROM {}".format(path))
 
@@ -96,8 +127,7 @@ class GB:
 
     def save_battery(self, path):
         self._assert_memory()
-        path = str(Path(path).resolve()).encode('utf-8')
-        res = _sameboy.GB_save_battery(self.memory, path)
+        res = _sameboy.GB_save_battery(self.memory, self._encode_path(path))
         if res:
             raise Exception("Error saving battery at {}".format(path))
 
@@ -137,16 +167,24 @@ class GB:
             lambda _, s, a: callback(self, s, a))
         _sameboy.GB_set_log_callback(self.memory, self.log_callback)
 
-    def save_screenshot(self, path, format=None):
-        img = Image.frombytes('RGBA', (160, 144), self.screen)
-        img.save(path, format, optimize=True)
+    def screen_to_image(self):
+        (width, height) = self.get_screen_width(), self.get_screen_height()
+        img = Image.frombytes('RGBA', (width, height), self.screen)
+        return img
 
-    def dump_memory(self, path):
+    def save_screenshot(self, path, format=None, **options):
+        self.screen_to_image().save(path, format, **options)
+
+    def memory_to_bytearray(self):
+        # TODO: write a function in C that does this!
         mem = bytearray(0xFFFF + 1)
         for addr in range(0xFFFF + 1):
             mem[addr] = self.read_memory(addr)
+        return mem
+
+    def dump_memory(self, path):
         with open(path, 'wb') as f:
-            f.write(mem)
+            f.write(self.memory_to_bytearray())
 
 
 if __name__ == '__main__':
@@ -158,14 +196,6 @@ if __name__ == '__main__':
 
     # boot_rom = Path('SameBoy/build/bin/tester/dmg_boot.bin').read_bytes()
     # gb.load_boot_rom_from_bytes(boot_rom)
-
-    # default callbacks
-    gb.set_vblank_callback(lambda gb: 0)
-    gb.set_rgb_encode_callback(
-        lambda gb, r, g, b: 0xFF000000 | (r << 16) | (g << 8) | b)
-    gb.set_log_callback(lambda gb, s, attr: print(s.decode('utf-8'), end=''))
-    gb.set_input_callback(lambda gb: None)
-    # gb.set_async_input_callback(lambda gb: None)
 
     gb.load_rom('out/instrument/instrument.gb')
     # gb.load_rom('./out/testing/testing.gb')
@@ -184,7 +214,7 @@ if __name__ == '__main__':
     gb.set_rendering_disabled(False)
     gb.run_frame()
 
-    gb.save_screenshot('test.png')
+    gb.save_screenshot('test.png', optimize=True)
     # gb.save_battery('./testing.sav')
 
     gb.free()
