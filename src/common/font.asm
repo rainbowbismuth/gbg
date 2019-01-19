@@ -1,2 +1,2 @@
 gfx_potash:
-INCBIN "out/gfx/common/potash.2bpp"
+INCBIN "gfx/common/potash.2bpp"
