@@ -8,6 +8,16 @@ _sameboy = ctypes.cdll.LoadLibrary('out/SameBoy/sameboy.so')
 GB_MODEL_DMG_B = 0x002
 GB_MODEL_CGB_C = 0x203
 
+GB_KEY_RIGHT = 0
+GB_KEY_LEFT = 1
+GB_KEY_UP = 2
+GB_KEY_DOWN = 3
+GB_KEY_A = 4
+GB_KEY_B = 5
+GB_KEY_SELECT = 6
+GB_KEY_START = 7
+GB_KEY_MAX = 8  # Count
+
 # Not sure if this is necessary for us..
 GB_input_callback = ctypes.CFUNCTYPE(ctypes.c_char_p, ctypes.c_void_p)
 
@@ -193,6 +203,10 @@ class SameBoy:
         with open(path, 'wb') as f:
             f.write(self._memory_to_bytearray())
 
+    def set_key_state(self, key, pressed):
+        self._assert_memory()
+        _sameboy.GB_set_key_state(self._memory, key, pressed)
+
 
 if __name__ == '__main__':
     with SameBoy(GB_MODEL_DMG_B) as gb:
@@ -212,6 +226,8 @@ if __name__ == '__main__':
 
         # gb.debugger_set_disabled(False)
         # gb.debugger_break()
+        gb.set_key_state(GB_KEY_A, True)
+
         gb.set_rendering_disabled(True)
         for _ in range(60 * 40):
             gb.run_frame()

@@ -26,6 +26,10 @@ def build_sameboy(c):
     c.run('mkdir -p out/SameBoy')
     c.run(f'{CC} -shared -o out/SameBoy/sameboy.so SameBoy/build/obj/Core/*.o')
 
+@task(pre=[build_sameboy])
+def test_sameboy(c):
+    c.run('python3 tooling/sameboy.py')
+
 @task
 def build_gfx_2bpp(c, image):
     image = Path(image)
