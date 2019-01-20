@@ -87,20 +87,26 @@ def flash(c, name):
     c.run(f'{EMSFLASHER} --page 1 --write {project_gb}')
 
 @task
-def render_frames(c, rom, frames, skip=0):
+def render_frames(c, rom, frames, offset=0, frameskip=1):
+    frames = int(frames)
+    offset = int(offset)
+    frameskip = int(frameskip)
+    
     c.run('mkdir -p rendered')
     from tooling import sameboy
     gb = sameboy.SameBoy(sameboy.GB_MODEL_DMG_B)
     gb.load_rom(rom)
 
     gb.set_rendering_disabled(True)
-    for _ in range(skip):
+    for _ in range(offset):
         gb.run_frame()
 
     gb.set_rendering_disabled(False)
-    for x in range(int(frames)):
+    for x in range(offset, offset+frames):
         gb.run_frame()
-        gb.save_screenshot(f'rendered/frame_{skip+x}.png')
+        if x % frameskip != 0:
+            continue
+        gb.save_screenshot(f'rendered/frame_{x}.png')
 
     gb.free()
 
