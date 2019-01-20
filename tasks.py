@@ -88,12 +88,15 @@ def flash(c, name):
 
 @task
 def render_frames(c, rom, frames, offset=0, frameskip=1):
+    from tooling import sameboy
+    from tqdm import tqdm
+
     frames = int(frames)
     offset = int(offset)
     frameskip = int(frameskip)
-    
+
     c.run('mkdir -p rendered')
-    from tooling import sameboy
+
     gb = sameboy.SameBoy(sameboy.GB_MODEL_DMG_B)
     gb.load_rom(rom)
 
@@ -102,11 +105,11 @@ def render_frames(c, rom, frames, offset=0, frameskip=1):
         gb.run_frame()
 
     gb.set_rendering_disabled(False)
-    for x in range(offset, offset+frames):
+    for x in tqdm(range(offset, offset+frames)):
         gb.run_frame()
         if x % frameskip != 0:
             continue
-        gb.save_screenshot(f'rendered/frame_{x}.png')
+        gb.save_screenshot(f'rendered/frame_{str(x).zfill(6)}.png')
 
     gb.free()
 
