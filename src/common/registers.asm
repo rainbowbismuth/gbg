@@ -29,4 +29,15 @@ REG_BG_Palette EQU $47
 REG_OB_Palette_1 EQU $48
 REG_OB_Palette_2 EQU $49
 
+REG_CGB_Speed_Switch EQU $4D
+
+REG_CGB_VRAM_Bank EQU $4F
+
+REG_CGB_BG_Palette_Index EQU $68
+REG_CGB_BG_Palette_Data EQU $69
+REG_CGB_Sprite_Palette_Index EQU $6A
+REG_CGB_Sprite_Palette_Data EQU $6B
+
+REG_CGB_WRAM_Bank EQU $70
+
 REG_Interrupt_Enable EQU $FF
