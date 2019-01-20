@@ -43,16 +43,15 @@ main:
   call cause_deadlock
 
 vblank:
-  ;ldh a, [REG_Scroll_Y]
-  ;inc a
-  ;ldh [REG_Scroll_Y], a
-  ;ldh a, [REG_Scroll_X]
-  ;inc a
-  ;ldh [REG_Scroll_X], a
+  ldh a, [$FB]
+  inc a
+  ldh [$FB], a
+  srl a
+  srl a
+  ldh [$FA], a
   reti
 
 stat:
-;  reti
   ldh a, [REG_LCD_Y]
   cp a, LCD_Y_VBLANK-1
   jr c, .continue
@@ -61,24 +60,15 @@ stat:
   ldh a, [$FA]
   inc a
   ldh [$FA], a
-  and a, %00001111
-
-  ;ld b, a
-  ;ldh a, [$FB]
-  ;and a, $0F
-  ;add a, b
+  and a, $1F
 
   ld hl, offsets
   add_a_to_hl
   ld a, [hl]
   ld b, a
 
-  ld a, START_X-18
-  ;ld c, a
-
-  ;ldh a, [REG_Scroll_X]
+  ld a, START_X-15
   add a, b
-  ;add a, c
   ldh [REG_Scroll_X], a
 .return:
   reti
@@ -93,14 +83,23 @@ joypad:
   reti
 
 offsets:
-  DB 0, 1, 3, 9         ; 4
-  DB 16, 32, 40, 42     ; 8
-  DB 42, 40, 32, 16     ; 12
-  DB 9, 3, 1, 0         ; 16
-  DB 0, -1, -3, -9      ; 20
-  DB -16, -32, -40, -42 ; 24
-  DB -42, -40, -32, -16 ; 28
-  DB -9, -3, -1, 0      ; 32
+  DB 0, 1, 2, 3
+  DB 4, 6, 8, 10
+  DB 12, 14, 16, 18
+  DB 20, 23, 25, 26
+  DB 26, 25, 23, 20
+  DB 18, 16, 14, 12
+  DB 10, 8, 6, 4
+  DB 3, 2, 1, 0
+
+  DB 0, -1, -2, -3
+  DB -4, -6, -8, -10
+  DB -12, -14, -16, -18
+  DB -20, -23, -25, -26
+  DB -26, -25, -23, -20
+  DB -18, -16, -14, -12
+  DB -10, -8, -6, -4
+  DB -3, -2, -1, 0
 
 
 INCLUDE "gfx.asm"
@@ -123,13 +122,6 @@ load_rc_logo_into_tilemap:
   inc a
 
   add hl, de
-  ;inc h
-  ; sla l
-  ;ld b, a
-  ;ld a, l,
-  ;add a, 16
-  ;ld l, a
-  ;ld a, b
   ENDR
   ret
 
