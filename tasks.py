@@ -81,7 +81,7 @@ def gambatte(c, name):
     c.run(f'{GAMBATTE} {project_gb}')
 
 @task
-def emsflash(c, name):
+def flash(c, name):
     project_gb = (OUT / name / name).with_suffix('.gb')
     c.run(f'{EMSFLASHER} --page 1 --format')
     c.run(f'{EMSFLASHER} --page 1 --write {project_gb}')

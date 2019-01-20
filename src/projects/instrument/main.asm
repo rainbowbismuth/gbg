@@ -163,3 +163,17 @@ INCLUDE "save.asm"
 INCLUDE "sound.asm"
 INCLUDE "gfx.asm"
 INCLUDE "font.asm"
+
+reset_gfx:
+  call reset_palettes
+
+  call load_potash
+  call clear_tile_map_0
+
+  ld de, Tile_Map_0_Begin
+  REPT 30
+  ld bc, test_message
+  call print_ascii
+  ENDR
+
+  jp turn_on_lcd ; tail call

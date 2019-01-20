@@ -30,7 +30,7 @@ disable_lcd:
   ldh [REG_LCD_Control], a ; turn off LCD
   ret
 
-reset_gfx:
+reset_palettes:
   ld a, %11100100
   ldh [REG_BG_Palette], a
   ldh [REG_OB_Palette_1], a
@@ -38,16 +38,9 @@ reset_gfx:
   xor a
   ldh [REG_Scroll_X], a
   ldh [REG_Scroll_Y], a
+  ret
 
-  call load_potash
-  call clear_tile_map_0
-
-  ld de, Tile_Map_0_Begin
-  REPT 30
-  ld bc, test_message
-  call print_ascii
-  ENDR
-
+turn_on_lcd:
   ld a, $80 ; enable LCD display
   set 4, a ; use Tile_Data_0 addr mode
   set 0, a ; turn on BG
@@ -73,15 +66,6 @@ clear_tile_map_0:
 
   ret
 
-load_potash:
-  call wait_for_vram_access
-
-  ld de, gfx_potash
-  ld hl, Tile_Data_0_Begin
-  ld b, 255
-  call memcpy_16
-
-  ret
 
 ; input
 ;   DE = tile map start

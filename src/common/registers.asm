@@ -1,5 +1,7 @@
 REG_Joypad EQU $00
 
+REG_Divider EQU $04
+
 REG_Interrupt_Flag EQU $0F
 
 REG_Sound1_Sweep EQU $10
