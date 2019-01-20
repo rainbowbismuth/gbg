@@ -87,5 +87,23 @@ def flash(c, name):
     c.run(f'{EMSFLASHER} --page 1 --write {project_gb}')
 
 @task
+def render_frames(c, rom, frames, skip=0):
+    c.run('mkdir -p rendered')
+    from tooling import sameboy
+    gb = sameboy.SameBoy(sameboy.GB_MODEL_DMG_B)
+    gb.load_rom(rom)
+
+    gb.set_rendering_disabled(True)
+    for _ in range(skip):
+        gb.run_frame()
+
+    gb.set_rendering_disabled(False)
+    for x in range(int(frames)):
+        gb.run_frame()
+        gb.save_screenshot(f'rendered/frame_{skip+x}.png')
+
+    gb.free()
+
+@task
 def format_python(c):
     c.run('autopep8 -i **/*.py')

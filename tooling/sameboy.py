@@ -60,10 +60,16 @@ class SameBoy:
         height = self.screen_height
         self._screen = ctypes.create_string_buffer(4 * width * height)
         _sameboy.GB_set_pixels_output(self._memory, self._screen)
+
         self.set_rgb_encode_callback(default_rgb_encode_callback)
         self.set_vblank_callback(default_vblank_callback)
         self.set_log_callback(default_log_callback)
         self.set_input_callback(default_input_callback)
+
+        if model == GB_MODEL_CGB_C:
+            self.load_boot_rom('SameBoy/build/bin/BootROMs/cgb_boot.bin')
+        else:
+            self.load_boot_rom('SameBoy/build/bin/BootROMs/dmg_boot.bin')
 
     def __del__(self):
         if not self._memory:
