@@ -2,6 +2,6 @@
 
 Home for all my GB related hacking.
 
-# Building
+# Requirements
 
-To use the `build.py -t` option, first run `make tester` in `SameBoy` to build a custom version of `sameboy_tester`
+No requirements.txt yet, but I'm using the Python libraries Invoke, Pillow & tqdm
