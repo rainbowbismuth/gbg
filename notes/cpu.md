@@ -10,3 +10,7 @@ From `$FF80` to `$FFFE`? Can only be allocated with **DS** of course, but is thi
 
 I suppose it might make sense to use some of HRAM as parameters to functions,
 particularly there could be a standard set for leaf functions.
+
+# Instructions
+
+* CALL - I didn't notice there is a `CALL cc` (and `RET cc`) variant!

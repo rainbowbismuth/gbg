@@ -9,6 +9,8 @@ but a lot of the tiles seem to be limited to 4 colors. Some, like the strawberri
 or Madeline use more. In both cases I think these could be done with some
 special handling & overlapping sprites.
 
+It looks like you can write to palette data during vblank & hblank?
+
 # Link to Pico-8 cartridge
 
 https://www.lexaloffle.com/bbs/?tid=2145

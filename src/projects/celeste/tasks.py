@@ -30,11 +30,30 @@ def select_gfx_tile(data, idx):
         output.append(''.join(line))
     return ''.join(output)
 
+def load_gfx():
+    return ''.join(read_section('gfx'))
+
 @task
 def print_tile(c, idx):
     idx = int(idx)
-    data = ''.join(read_section('gfx'))
+    data = load_gfx()
     print(select_gfx_tile(data, idx))
+
+def unique_bq_palettes():
+    data = load_gfx()
+    palettes = [set(select_gfx_tile(data, idx)) for idx in range(128)]
+    filtered = [palette for palette in palettes if len(palette) <= 4]
+
+    output = set()
+    for palette in filtered:
+        subset = False
+        for p in filtered:
+            if palette != p and palette.issubset(p):
+                subset = True
+                break
+        if not subset:
+            output.add(''.join(sorted(palette)))
+    return output
 
 @task
 def print_palette(c, idx):
@@ -42,6 +61,9 @@ def print_palette(c, idx):
     data = ''.join(read_section('gfx'))
     print(set(select_gfx_tile(data, idx)))
 
+@task
+def print_bg_palettes(c):
+    print(unique_bq_palettes())
 
 @task
 def print_section(c, name):
