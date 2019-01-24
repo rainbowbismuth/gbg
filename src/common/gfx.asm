@@ -90,3 +90,29 @@ print_ascii:
 
 test_message:
   DB "Hello music, I love you!     ",0
+
+
+; no arguments
+; clobbers all registers
+install_oam_dma_code_to_hram:
+  ld hl, ($FF00+HRAM_Leaf_Begin)
+  ld de, run_oam_dma_hram
+  ld b, (run_oam_dma_hram - run_oam_dma_hram_end)
+  jp memcpy ; tail-call
+
+; input
+;   A = input addr / $100
+; must have OAM DMA code starting at HRAM_Leaf_Begin
+; clobbers bc, f
+run_oam_dma:
+  ld bc, ($2900 + REG_OAM_DMA)
+  jp ($FF00+HRAM_Leaf_Begin) ; tail-call
+
+run_oam_dma_hram:
+  ldh [$FF00+c], a
+.wait:
+  dec b
+  jr nz, .wait
+  ret
+run_oam_dma_hram_end:
+  nop

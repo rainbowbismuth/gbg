@@ -24,6 +24,8 @@ REG_Scroll_X EQU $43
 REG_LCD_Y EQU $44
 REG_LCD_Y_Compare EQU $45
 
+REG_OAM_DMA EQU $46
+
 ; LCD Monochrome Palettes, Non-GBC-mode only
 REG_BG_Palette EQU $47
 REG_OB_Palette_1 EQU $48
@@ -39,5 +41,10 @@ REG_CGB_Sprite_Palette_Index EQU $6A
 REG_CGB_Sprite_Palette_Data EQU $6B
 
 REG_CGB_WRAM_Bank EQU $70
+
+
+HRAM_Leaf_Begin EQU $E0
+HRAM_Leaf_End EQU $FE
+
 
 REG_Interrupt_Enable EQU $FF
