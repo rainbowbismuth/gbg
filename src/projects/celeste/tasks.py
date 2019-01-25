@@ -1,6 +1,7 @@
 from pathlib import Path
 from invoke import task
 
+
 def read_section(section):
     content = Path('celeste.txt').read_text().strip()
     found = False
@@ -13,9 +14,11 @@ def read_section(section):
         if line == section:
             found = True
 
+
 BYTES_PER_TILE = 16
 COLORS_PER_SPRITE = 4
 PIXELS_PER_LINE = 128
+
 
 def select_gfx_tile(data, idx):
     add_x = (idx & 0x0F) * 8
@@ -30,14 +33,17 @@ def select_gfx_tile(data, idx):
         output.append(''.join(line))
     return ''.join(output)
 
+
 def load_gfx():
     return ''.join(read_section('gfx'))
+
 
 @task
 def print_tile(c, idx):
     idx = int(idx)
     data = load_gfx()
     print(select_gfx_tile(data, idx))
+
 
 def unique_bq_palettes():
     data = load_gfx()
@@ -55,15 +61,18 @@ def unique_bq_palettes():
             output.add(''.join(sorted(palette)))
     return output
 
+
 @task
 def print_palette(c, idx):
     idx = int(idx)
     data = ''.join(read_section('gfx'))
     print(set(select_gfx_tile(data, idx)))
 
+
 @task
 def print_bg_palettes(c):
     print(unique_bq_palettes())
+
 
 @task
 def print_section(c, name):

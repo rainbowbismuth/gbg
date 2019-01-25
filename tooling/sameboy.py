@@ -30,6 +30,7 @@ GB_rgb_encode_callback = ctypes.CFUNCTYPE(ctypes.c_uint32, ctypes.c_void_p,
                                           ctypes.c_uint8, ctypes.c_uint8,
                                           ctypes.c_uint8)
 
+
 # typedef void (*GB_infrared_callback_t)(GB_gameboy_t *gb, bool on, long cycles_since_last_update);
 # typedef void (*GB_rumble_callback_t)(GB_gameboy_t *gb, bool rumble_on);
 # typedef void (*GB_serial_transfer_start_callback_t)(GB_gameboy_t *gb, uint8_t byte_to_send);
