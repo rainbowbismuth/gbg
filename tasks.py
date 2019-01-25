@@ -13,6 +13,7 @@ COMMON = SRC / 'common'
 PROJECTS = SRC / 'projects'
 
 GAMBATTE = HOME / 'workspace/gambatte/gambatte_sdl/gambatte_sdl'
+BGB = HOME / 'workspace/bgb/bgb.exe'
 EMSFLASHER = HOME / 'workspace/ems-flasher/ems-flasher'
 SAMEBOY_TESTER = HERE / 'SameBoy/build/bin/tester/sameboy_tester'
 
@@ -79,6 +80,11 @@ def sameboy_tester(c, name):
 def gambatte(c, name):
     project_gb = (OUT / name / name).with_suffix('.gb')
     c.run(f'{GAMBATTE} {project_gb}')
+
+@task
+def bgb(c, name):
+    project_gb = (OUT / name / name).with_suffix('.gb')
+    c.run(f'wine {BGB} {project_gb}')
 
 @task
 def flash(c, name):
