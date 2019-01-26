@@ -13,8 +13,8 @@
 * Using `.sav` for a testing framework is nice until you want to test your saving code I suppose :P
 * Actually I have a much better idea, I could use a byte or two of memory as a register to talk to SameBoy, and then single step it in the tester???
 * Could read `.map` file for test_framework section info to control testing exec
-* Writing a ctypes wrapper at the moment, to write the testing code in Python
 * Imagine being able to check invariants every frame?
+* Could have a decent 'define test' macro that could report all tests at the start, and not need an explicit `test_main` function
 
 # Profiling
 
